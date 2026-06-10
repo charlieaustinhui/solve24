@@ -25,7 +25,7 @@ export default function Timer({ timeLeft }: TimerProps) {
       </span>
       <div className="h-2 w-full overflow-hidden rounded-full bg-ink-700">
         <div
-          className={`h-full rounded-full transition-[width] duration-200 ${
+          className={`h-full rounded-full transition-[width] duration-1000 ease-linear ${
             urgent ? 'bg-lantern-500' : 'bg-gold-500'
           }`}
           style={{ width: `${pct}%` }}

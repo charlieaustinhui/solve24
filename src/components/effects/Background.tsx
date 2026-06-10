@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import type { Difficulty } from '../../lib/deck'
 
 function Leaf({ size }: { size: number }) {
@@ -58,7 +58,7 @@ const STORM = [
  * (hidden if missing — the ink body background shows through), a readability
  * scrim, and an ambient particle layer: bamboo leaves / falling gold / storm clouds.
  */
-export default function Background({ difficulty }: { difficulty: Difficulty }) {
+function Background({ difficulty }: { difficulty: Difficulty }) {
   const [failed, setFailed] = useState<Partial<Record<Difficulty, boolean>>>({})
 
   return (
@@ -69,7 +69,7 @@ export default function Background({ difficulty }: { difficulty: Difficulty }) {
           src={`/backgrounds/${difficulty}.png`}
           onError={() => setFailed((f) => ({ ...f, [difficulty]: true }))}
           alt=""
-          className="anim-bg-drift absolute inset-0 h-full w-full object-cover"
+          className="anim-bg-drift absolute inset-0 h-full w-full object-cover will-change-transform"
         />
       )}
       <div className="absolute inset-0 bg-ink-950/60" />
@@ -109,3 +109,7 @@ export default function Background({ difficulty }: { difficulty: Difficulty }) {
     </div>
   )
 }
+
+// memo: the parent re-renders on every timer/score change — this whole layer
+// only needs to render when the difficulty tier changes
+export default memo(Background)

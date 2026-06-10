@@ -112,9 +112,11 @@ body {
 .anim-cloud { animation: cloud-drift linear infinite; }
 .anim-lantern-fall { animation: lantern-fall 2.4s ease-in both; }
 
+/* Constant scale: animating scale forces periodic re-rasterization of the
+   large image layer; translate-only drift stays on the GPU */
 @keyframes bg-drift {
-  0%, 100% { transform: scale(1.06) translate(0, 0); }
-  50% { transform: scale(1.13) translate(-1.5%, -1%); }
+  0%, 100% { transform: scale(1.1) translate(0, 0); }
+  50% { transform: scale(1.1) translate(-1.8%, -1.2%); }
 }
 @keyframes leaf-fall {
   0% { transform: translate(0, -12vh) rotate(0deg); }
