@@ -3,9 +3,10 @@ import type { Rational } from '../lib/rational'
 import { equals, format, rat } from '../lib/rational'
 import type { Op } from '../lib/solver'
 import { applyOp, solve, TARGET } from '../lib/solver'
+import type { Difficulty } from '../lib/deck'
 import { HANZI, dealHand } from '../lib/deck'
 import type { ComboTier } from '../lib/scoring'
-import { ROUND_SECONDS, comboTier, handScore } from '../lib/scoring'
+import { ROUND_SECONDS, comboTier, difficultyAt, handScore } from '../lib/scoring'
 import { isMuted, sfx, toggleMuted } from '../lib/audio'
 import Card from './Card'
 import OperatorBar from './OperatorBar'
@@ -51,9 +52,11 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
   const [flash, setFlash] = useState<SolveFlash | null>(null)
   const [muted, setMuted] = useState(isMuted)
   const [finished, setFinished] = useState(false)
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy')
   // Wall-clock time flows only through these refs, written in effects/handlers,
   // so render stays pure (react-hooks/purity)
   const nowRef = useRef(0)
+  const roundStart = useRef(0)
   const handStart = useRef(0)
   const endTime = useRef(0)
   const lastTick = useRef(ROUND_SECONDS)
@@ -62,6 +65,7 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
   useEffect(() => {
     const start = Date.now()
     nowRef.current = start
+    roundStart.current = start
     handStart.current = start
     endTime.current = start + ROUND_SECONDS * 1000
     const tick = setInterval(() => {
@@ -100,7 +104,10 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
   }, [flash])
 
   function dealNext() {
-    const fresh = dealHand()
+    const elapsed = (nowRef.current - roundStart.current) / 1000
+    const tier = difficultyAt(elapsed)
+    setDifficulty(tier)
+    const fresh = dealHand(tier)
     setHand(fresh)
     setCards(makeCards(fresh))
     setHistory([])
@@ -198,7 +205,7 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
       }`}
     >
       <header className="relative flex w-full max-w-2xl flex-col items-center gap-4">
-        <ScoreHud score={score} streak={streak} hands={hands} />
+        <ScoreHud score={score} streak={streak} hands={hands} difficulty={difficulty} />
         <Timer timeLeft={timeLeft} />
         <button
           type="button"

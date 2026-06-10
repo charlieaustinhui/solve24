@@ -60,3 +60,31 @@ export function solve(cards: number[]): string | null {
 export function isSolvable(cards: number[]): boolean {
   return solve(cards) !== null
 }
+
+/**
+ * Counts every derivation path that reaches 24 (not deduplicated, so numbers
+ * run high). Used as a difficulty proxy: many paths = easy, few = hard.
+ */
+export function countSolutions(cards: number[]): number {
+  let count = 0
+  function go(values: Rational[]) {
+    if (values.length === 1) {
+      if (equals(values[0], TARGET)) count++
+      return
+    }
+    for (let i = 0; i < values.length; i++) {
+      for (let j = 0; j < values.length; j++) {
+        if (i === j) continue
+        const rest = values.filter((_, k) => k !== i && k !== j)
+        for (const op of OPS) {
+          if ((op === '+' || op === '×') && i > j) continue
+          const value = applyOp(op, values[i], values[j])
+          if (value === null) continue
+          go([...rest, value])
+        }
+      }
+    }
+  }
+  go(cards.map((c) => rat(c)))
+  return count
+}

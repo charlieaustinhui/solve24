@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import type { Difficulty } from '../deck'
 import { dealHand, CARD_MIN, CARD_MAX, HANZI } from '../deck'
-import { isSolvable } from '../solver'
+import { countSolutions, isSolvable } from '../solver'
 
 describe('deck', () => {
   it('always deals 4 solvable cards in range', () => {
@@ -21,9 +22,30 @@ describe('deck', () => {
     const seq = [0, 0, 0, 0, 0.5, 0.5, 0.5, 0.5]
     let i = 0
     const rand = () => seq[Math.min(i++, seq.length - 1)]
-    const hand = dealHand(rand)
+    const hand = dealHand('easy', rand)
     expect(isSolvable(hand)).toBe(true)
     expect(hand).not.toEqual([1, 1, 1, 1])
+  })
+
+  it('deals hands inside each difficulty band', () => {
+    const bands: Record<Difficulty, (c: number) => boolean> = {
+      easy: (c) => c >= 18,
+      medium: (c) => c >= 8 && c < 18,
+      hard: (c) => c >= 1 && c < 8,
+    }
+    for (const difficulty of ['easy', 'medium', 'hard'] as const) {
+      for (let i = 0; i < 20; i++) {
+        const hand = dealHand(difficulty)
+        expect(isSolvable(hand)).toBe(true)
+        expect(bands[difficulty](countSolutions(hand))).toBe(true)
+      }
+    }
+  })
+
+  it('falls back to any solvable hand when the RNG is degenerate', () => {
+    // rand stuck at one value cannot satisfy every band, but must not hang
+    const hand = dealHand('hard', () => 0.55)
+    expect(isSolvable(hand)).toBe(true)
   })
 
   it('has a hanzi watermark for every card value', () => {
