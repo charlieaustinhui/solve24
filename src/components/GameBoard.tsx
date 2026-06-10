@@ -219,7 +219,7 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
           key={flash.key}
           className="pointer-events-none absolute inset-0 flex items-center justify-center"
         >
-          <span className="font-brush text-7xl text-gold-400">+{flash.points}</span>
+          <span className="font-brush text-7xl text-gold-400">+{flash.points} 分</span>
         </div>
       )}
     </div>
