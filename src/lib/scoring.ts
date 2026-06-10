@@ -3,8 +3,8 @@ import type { Difficulty } from './deck'
 export const ROUND_SECONDS = 180
 export const BASE_POINTS = 100
 
-export const MEDIUM_AT = 500
-export const HARD_AT = 1000
+export const MEDIUM_AT = 1000
+export const HARD_AT = 1750
 
 /** Hands get harder as your score climbs, not with the clock. */
 export function difficultyForScore(score: number): Difficulty {

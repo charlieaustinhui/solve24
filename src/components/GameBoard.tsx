@@ -13,6 +13,13 @@ import OperatorBar from './OperatorBar'
 import Timer from './Timer'
 import ScoreHud from './ScoreHud'
 import Celebration from './effects/Celebration'
+import Background from './effects/Background'
+
+// ?level=easy|medium|hard pins the scene for previews/testing
+function forcedLevelFromUrl(): Difficulty | null {
+  const p = new URLSearchParams(window.location.search).get('level')
+  return p === 'easy' || p === 'medium' || p === 'hard' ? p : null
+}
 
 interface CardState {
   id: number
@@ -33,7 +40,8 @@ interface GameBoardProps {
 }
 
 export default function GameBoard({ onGameOver }: GameBoardProps) {
-  const [hand, setHand] = useState<number[]>(() => dealHand())
+  const [forcedLevel] = useState(forcedLevelFromUrl)
+  const [hand, setHand] = useState<number[]>(() => dealHand(forcedLevel ?? 'easy'))
   const [cards, setCards] = useState<CardState[]>(() =>
     hand.map((n, i) => ({ id: i + 1, value: rat(n), base: n })),
   )
@@ -52,7 +60,8 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
   const [flash, setFlash] = useState<SolveFlash | null>(null)
   const [muted, setMuted] = useState(isMuted)
   const [finished, setFinished] = useState(false)
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy')
+  const [difficulty, setDifficulty] = useState<Difficulty>(forcedLevel ?? 'easy')
+  const [levelUp, setLevelUp] = useState<Difficulty | null>(null)
   // Wall-clock time flows only through these refs, written in effects/handlers,
   // so render stays pure (react-hooks/purity)
   const nowRef = useRef(0)
@@ -101,9 +110,19 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
     return () => clearTimeout(t)
   }, [flash])
 
+  useEffect(() => {
+    if (levelUp === null) return
+    const t = setTimeout(() => setLevelUp(null), 2200)
+    return () => clearTimeout(t)
+  }, [levelUp])
+
   function dealNext(currentScore: number) {
-    const tier = difficultyForScore(currentScore)
-    setDifficulty(tier)
+    const tier = forcedLevel ?? difficultyForScore(currentScore)
+    if (tier !== difficulty) {
+      setDifficulty(tier)
+      setLevelUp(tier)
+      sfx.levelUp()
+    }
     const fresh = dealHand(tier)
     setHand(fresh)
     setCards(makeCards(fresh))
@@ -206,6 +225,7 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
         flash?.tier === 'dragon' ? 'anim-shake' : ''
       }`}
     >
+      <Background difficulty={difficulty} />
       <header className="relative flex w-full max-w-2xl flex-col items-center gap-4">
         <ScoreHud score={score} streak={streak} hands={hands} difficulty={difficulty} />
         <Timer timeLeft={timeLeft} />
@@ -231,6 +251,7 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
               label={format(card.value)}
               hanzi={card.base ? HANZI[card.base] : undefined}
               selected={selectedId === card.id}
+              difficulty={difficulty}
               onClick={() => handleCardClick(card.id)}
             />
           ))}
@@ -284,6 +305,26 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
       )}
 
       {flash && <Celebration key={flash.key} points={flash.points} tier={flash.tier} />}
+
+      {levelUp && (
+        <div
+          key={levelUp}
+          className="pointer-events-none absolute top-[10%] left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-1"
+        >
+          <span
+            className={`anim-stamp inline-block rounded-lg border-4 px-5 py-2 font-brush text-7xl shadow-2xl ${
+              levelUp === 'hard'
+                ? 'border-lantern-400 bg-lantern-600/95 text-gold-300'
+                : 'border-gold-300 bg-gold-500/95 text-ink-950'
+            }`}
+          >
+            {levelUp === 'hard' ? '難' : '中'}
+          </span>
+          <span className="anim-points font-arcade text-2xl tracking-[0.3em] text-paper-100">
+            LEVEL UP
+          </span>
+        </div>
+      )}
     </div>
   )
 }

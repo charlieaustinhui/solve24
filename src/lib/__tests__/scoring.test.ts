@@ -34,7 +34,7 @@ describe('scoring', () => {
     expect(handScore(0, 11)).toBe(500)
   })
 
-  it('escalates difficulty by score: easy to 500, medium to 1000, then hard', () => {
+  it('escalates difficulty by score at the MEDIUM_AT / HARD_AT thresholds', () => {
     expect(ROUND_SECONDS).toBe(180)
     expect(difficultyForScore(0)).toBe('easy')
     expect(difficultyForScore(MEDIUM_AT - 1)).toBe('easy')

@@ -155,6 +155,16 @@ export const sfx = {
     tone({ freq: 1400, dur: 0.03, type: 'square', vol: 0.05 })
   },
 
+  /** Grand sting when the difficulty tier rises: gong, cymbal swell, flourish. */
+  levelUp() {
+    if (mutedFlag) return
+    gong(100, 2.2, 0.26)
+    noise({ dur: 0.9, vol: 0.1, from: 300, to: 5000 })
+    ;[523.25, 659.25, 783.99, 1046.5, 1567.98].forEach((f, i) =>
+      tone({ freq: f, dur: 0.35, type: 'triangle', vol: 0.14, at: 0.15 + i * 0.09 }),
+    )
+  },
+
   /** Big gong at time's up. */
   gameOver() {
     if (mutedFlag) return
