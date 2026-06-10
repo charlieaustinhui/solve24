@@ -2,7 +2,6 @@ import { useState } from 'react'
 import StartScreen from './components/StartScreen'
 import GameBoard from './components/GameBoard'
 import GameOverModal from './components/GameOverModal'
-import Lanterns from './components/effects/Lanterns'
 
 type Phase = 'idle' | 'playing' | 'gameover'
 
@@ -17,7 +16,16 @@ function App() {
 
   return (
     <>
-      {phase !== 'playing' && <Lanterns />}
+      {phase !== 'playing' && (
+        <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+          <img
+            src="/backgrounds/menu.png"
+            alt=""
+            className="anim-bg-drift absolute inset-0 h-full w-full object-cover will-change-transform"
+          />
+          <div className="absolute inset-0 bg-ink-950/55" />
+        </div>
+      )}
       <div className="relative">
         <Screen
           phase={phase}
