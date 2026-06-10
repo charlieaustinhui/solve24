@@ -45,3 +45,41 @@ A running cheat sheet of every git concept used in this project, in the order we
   staging subsets: test wiring → rational math → solver/deck/scoring.
 - **When a test fails, decide whether the code or the test is wrong** before "fixing".
   Ours was a too-strict assertion — the test got fixed, not the solver.
+
+## Lesson 3 — Merging
+
+| Command | What it does |
+|---|---|
+| `git merge <branch>` | Replays the branch's changes onto the current branch |
+| `git merge --no-ff <branch>` | Forces a merge commit even when fast-forward is possible |
+| `git branch -d <branch>` | Deletes a merged branch (the commits live on in main) |
+| `git log --oneline --graph --all` | Draws the branch/merge picture |
+
+### Key ideas
+
+- **Fast-forward**: if `main` hasn't moved since you branched, git can just slide the
+  pointer forward — no new commit. `--no-ff` instead records a merge commit so history
+  shows "these commits were one feature". GitHub PRs do this by default.
+- **Switching branches rewrites your working files.** The feature's files literally
+  vanish from disk on `main` until you merge — branches are parallel universes.
+
+## Lesson 5 — Merge conflicts
+
+| Command | What it does |
+|---|---|
+| `git merge <branch>` → `CONFLICT` | Both branches edited the same lines; git asks you to decide |
+| `git status` | Lists conflicted files as "both modified" |
+| `git add <file>` | Marks the conflict resolved |
+| `git commit` | Completes the merge |
+| `git merge --abort` | Bail out and return to the pre-merge state |
+
+### Key ideas
+
+- Conflict markers: `<<<<<<< HEAD` (your side) / `=======` / `>>>>>>> branch` (their
+  side). Edit the file to the final desired state and delete every marker.
+- Git auto-merges everything it can — conflicts only happen where **both** branches
+  touched the **same lines**.
+- **Honor both intents.** We kept the new `Celebration` component (the feature) and
+  carried the `分` suffix into it (the hotfix). Don't blindly pick a side.
+- **Build/test before committing the merge** — a file with leftover `>>>>>>>` markers
+  won't compile, but subtler logical conflicts can.
