@@ -132,3 +132,23 @@ main ──●──────────●─────●─────
 
 Next steps when you're ready: create a GitHub repo, `git remote add origin <url>`,
 `git push -u origin main --tags`, and open pull requests instead of merging locally.
+
+## Lesson 8 — Remotes & deploying
+
+| Command | What it does |
+|---|---|
+| `git remote add origin <url>` | Names a remote copy of the repo ("origin" is the conventional name) |
+| `git push -u origin main` | Uploads main; `-u` links local main to origin/main so future pushes are just `git push` |
+| `git push --tags` | Tags don't push by default — send them explicitly |
+| `git remote -v` | List configured remotes |
+
+### Key ideas
+
+- **Local vs remote:** everything we've done lives only on this machine. A remote
+  (GitHub) is a second copy — backup, collaboration point, and what deploy services watch.
+- **First push auth:** Git Credential Manager (bundled with Git for Windows) opens a
+  browser window to log in to GitHub once, then remembers.
+- **Deploying to Vercel:** sign in with GitHub → Add New Project → import the repo →
+  it detects the Vite preset (`npm run build` → `dist/`) → Deploy. Every future
+  `git push` to main auto-deploys. Branches get preview URLs — that's the PR workflow
+  in production form.
