@@ -6,7 +6,7 @@ import { applyOp, solve, TARGET } from '../lib/solver'
 import type { Difficulty } from '../lib/deck'
 import { HANZI, dealHand } from '../lib/deck'
 import type { ComboTier } from '../lib/scoring'
-import { ROUND_SECONDS, comboTier, difficultyAt, handScore } from '../lib/scoring'
+import { ROUND_SECONDS, comboTier, difficultyForScore, handScore } from '../lib/scoring'
 import { isMuted, sfx, toggleMuted } from '../lib/audio'
 import Card from './Card'
 import OperatorBar from './OperatorBar'
@@ -56,7 +56,6 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
   // Wall-clock time flows only through these refs, written in effects/handlers,
   // so render stays pure (react-hooks/purity)
   const nowRef = useRef(0)
-  const roundStart = useRef(0)
   const handStart = useRef(0)
   const endTime = useRef(0)
   const lastTick = useRef(ROUND_SECONDS)
@@ -65,7 +64,6 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
   useEffect(() => {
     const start = Date.now()
     nowRef.current = start
-    roundStart.current = start
     handStart.current = start
     endTime.current = start + ROUND_SECONDS * 1000
     const tick = setInterval(() => {
@@ -103,9 +101,8 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
     return () => clearTimeout(t)
   }, [flash])
 
-  function dealNext() {
-    const elapsed = (nowRef.current - roundStart.current) / 1000
-    const tier = difficultyAt(elapsed)
+  function dealNext(currentScore: number) {
+    const tier = difficultyForScore(currentScore)
     setDifficulty(tier)
     const fresh = dealHand(tier)
     setHand(fresh)
@@ -130,7 +127,7 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
     if (tier === 'samurai') sfx.slash()
     if (tier === 'emperor') sfx.fanfare()
     if (tier === 'dragon') sfx.dragon()
-    dealNext()
+    dealNext(score + points)
   }
 
   function combine(aId: number, chosenOp: Op, bId: number) {
@@ -195,7 +192,12 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
     const answer = solve(hand)
     setStreak(0)
     setToast(answer ? `One way: ${answer} = 24` : 'Skipped')
-    dealNext()
+    dealNext(score)
+  }
+
+  function handleEndEarly() {
+    sfx.gameOver()
+    setFinished(true)
   }
 
   return (
@@ -265,6 +267,13 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
           className="rounded-lg border border-lantern-500/60 px-5 py-2 font-arcade text-lg text-lantern-400 transition-colors hover:border-lantern-400"
         >
           Skip
+        </button>
+        <button
+          type="button"
+          onClick={handleEndEarly}
+          className="rounded-lg border border-gold-500/50 px-5 py-2 font-arcade text-lg text-gold-400 transition-colors hover:border-gold-400"
+        >
+          End round
         </button>
       </footer>
 
