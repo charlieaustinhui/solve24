@@ -32,12 +32,14 @@ interface GameBoardProps {
 }
 
 export default function GameBoard({ onGameOver }: GameBoardProps) {
-  const nextId = useRef(1)
-  const makeCards = (hand: number[]): CardState[] =>
-    hand.map((n) => ({ id: nextId.current++, value: rat(n), base: n }))
-
   const [hand, setHand] = useState<number[]>(() => dealHand())
-  const [cards, setCards] = useState<CardState[]>(() => makeCards(hand))
+  const [cards, setCards] = useState<CardState[]>(() =>
+    hand.map((n, i) => ({ id: i + 1, value: rat(n), base: n })),
+  )
+  const nextId = useRef(hand.length + 1)
+  // Only called from event handlers — refs must not be touched during render
+  const makeCards = (fresh: number[]): CardState[] =>
+    fresh.map((n) => ({ id: nextId.current++, value: rat(n), base: n }))
   const [history, setHistory] = useState<CardState[][]>([])
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [op, setOp] = useState<Op | null>(null)
@@ -48,37 +50,42 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
   const [toast, setToast] = useState<string | null>(null)
   const [flash, setFlash] = useState<SolveFlash | null>(null)
   const [muted, setMuted] = useState(isMuted)
-  const handStart = useRef(Date.now())
-  const endTime = useRef(Date.now() + ROUND_SECONDS * 1000)
-  const over = useRef(false)
-
-  // Refs mirror score/hands so the timer's closure always sees fresh values
-  const scoreRef = useRef(score)
-  const handsRef = useRef(hands)
-  scoreRef.current = score
-  handsRef.current = hands
-
+  const [finished, setFinished] = useState(false)
+  // Wall-clock time flows only through these refs, written in effects/handlers,
+  // so render stays pure (react-hooks/purity)
+  const nowRef = useRef(0)
+  const handStart = useRef(0)
+  const endTime = useRef(0)
   const lastTick = useRef(ROUND_SECONDS)
+  const flashKey = useRef(0)
 
   useEffect(() => {
+    const start = Date.now()
+    nowRef.current = start
+    handStart.current = start
+    endTime.current = start + ROUND_SECONDS * 1000
     const tick = setInterval(() => {
-      const left = Math.max(0, (endTime.current - Date.now()) / 1000)
+      const now = Date.now()
+      nowRef.current = now
+      const left = Math.max(0, (endTime.current - now) / 1000)
       setTimeLeft(left)
       const whole = Math.ceil(left)
       if (whole <= 10 && whole > 0 && whole !== lastTick.current) {
         lastTick.current = whole
         sfx.tick()
       }
-      if (left <= 0 && !over.current) {
-        over.current = true
+      if (left <= 0) {
         clearInterval(tick)
         sfx.gameOver()
-        onGameOver(scoreRef.current, handsRef.current)
+        setFinished(true)
       }
     }, 200)
     return () => clearInterval(tick)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (finished) onGameOver(score, hands)
+  }, [finished, score, hands, onGameOver])
 
   useEffect(() => {
     if (toast === null) return
@@ -99,18 +106,19 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
     setHistory([])
     setSelectedId(null)
     setOp(null)
-    handStart.current = Date.now()
+    handStart.current = nowRef.current
   }
 
   function handleSolve() {
-    const seconds = (Date.now() - handStart.current) / 1000
+    const seconds = (nowRef.current - handStart.current) / 1000
     const newStreak = streak + 1
     const points = handScore(seconds, newStreak)
     const tier = comboTier(newStreak)
     setScore((s) => s + points)
     setStreak(newStreak)
     setHands((h) => h + 1)
-    setFlash({ points, streak: newStreak, tier, key: Date.now() })
+    flashKey.current += 1
+    setFlash({ points, streak: newStreak, tier, key: flashKey.current })
     sfx.solve()
     if (tier === 'samurai') sfx.slash()
     if (tier === 'emperor') sfx.fanfare()

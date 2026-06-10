@@ -17,13 +17,12 @@ export default function GameOverModal({ score, hands, onPlayAgain, onMenu }: Gam
   const [initials, setInitials] = useState('')
   const [scores, setScores] = useState<HighScore[]>(loadHighScores)
   const [savedRank, setSavedRank] = useState<number | undefined>(undefined)
-  const [showDragon, setShowDragon] = useState(false)
+  const [showDragon, setShowDragon] = useState(isRecord)
   const entering = isRecord && savedRank === undefined
 
   useEffect(() => {
     if (!isRecord) return
     sfx.highScore()
-    setShowDragon(true)
     const t = setTimeout(() => setShowDragon(false), 2400)
     return () => clearTimeout(t)
   }, [isRecord])
