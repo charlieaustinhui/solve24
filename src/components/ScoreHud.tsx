@@ -1,5 +1,6 @@
 import type { Difficulty } from '../lib/deck'
 import { streakMultiplier } from '../lib/scoring'
+import ScoreTicker from './ScoreTicker'
 
 const DIFFICULTY_LABEL: Record<Difficulty, { hanzi: string; className: string }> = {
   easy: { hanzi: '易', className: 'text-paper-200' },
@@ -21,7 +22,9 @@ export default function ScoreHud({ score, streak, hands, difficulty }: ScoreHudP
     <div className="flex items-center gap-6">
       <div className="flex flex-col items-center">
         <span className="text-xs tracking-widest text-paper-200/60 uppercase">Score</span>
-        <span className="font-arcade text-3xl text-gold-400 tabular-nums">{score}</span>
+        <span className="font-arcade text-3xl text-gold-400 tabular-nums">
+          <ScoreTicker value={score} />
+        </span>
       </div>
       <div className="flex flex-col items-center">
         <span className="text-xs tracking-widest text-paper-200/60 uppercase">Streak</span>

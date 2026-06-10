@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { Achievement } from '../lib/achievements'
 import type { HighScore } from '../lib/highscores'
 import { addHighScore, loadHighScores, qualifies } from '../lib/highscores'
 import { sfx } from '../lib/audio'
@@ -8,11 +9,18 @@ import Dragon from './effects/Dragon'
 interface GameOverModalProps {
   score: number
   hands: number
+  newAchievements: Achievement[]
   onPlayAgain: () => void
   onMenu: () => void
 }
 
-export default function GameOverModal({ score, hands, onPlayAgain, onMenu }: GameOverModalProps) {
+export default function GameOverModal({
+  score,
+  hands,
+  newAchievements,
+  onPlayAgain,
+  onMenu,
+}: GameOverModalProps) {
   const [isRecord] = useState(() => qualifies(score))
   const [initials, setInitials] = useState('')
   const [scores, setScores] = useState<HighScore[]>(loadHighScores)
@@ -56,6 +64,20 @@ export default function GameOverModal({ score, hands, onPlayAgain, onMenu }: Gam
           {hands} hand{hands === 1 ? '' : 's'} solved
         </span>
       </div>
+
+      {newAchievements.length > 0 && (
+        <div className="flex max-w-md flex-wrap items-center justify-center gap-2">
+          {newAchievements.map((a) => (
+            <span
+              key={a.id}
+              className="flex items-center gap-2 rounded-lg border border-gold-500/60 bg-ink-900/90 px-3 py-1.5"
+            >
+              <span className="font-brush text-2xl text-gold-400">{a.hanzi}</span>
+              <span className="font-arcade text-sm text-paper-100">{a.name}</span>
+            </span>
+          ))}
+        </div>
+      )}
 
       {entering ? (
         <form

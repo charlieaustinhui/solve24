@@ -30,7 +30,8 @@ npm run dev      # http://localhost:5173
   multiplier (caps at ×2).
 - **Combo tiers:** streak 3+ summons the samurai 斬!, 5+ the emperor, 8+ the divine
   dragon (screen shake + lantern rain).
-- **Top-10 high scores** persist in `localStorage` with arcade-style initials.
+- **Top-10 high scores** persist in `localStorage` with arcade-style initials, plus
+  lifetime stats (solve rate, bests) and 9 unlockable hanzi badges.
 - **All audio is synthesized** with the Web Audio API — gongs, pentatonic arpeggios,
   katana shings. No sound files. Mute with the 音 button.
 - All art is hand-built inline SVG. No image assets.

@@ -11,6 +11,7 @@ import { isMuted, sfx, toggleMuted } from '../lib/audio'
 import Card from './Card'
 import OperatorBar from './OperatorBar'
 import Timer from './Timer'
+import type { RoundSummary } from '../lib/stats'
 import ScoreHud from './ScoreHud'
 import Celebration from './effects/Celebration'
 import Background from './effects/Background'
@@ -36,7 +37,7 @@ interface SolveFlash {
 }
 
 interface GameBoardProps {
-  onGameOver: (score: number, hands: number) => void
+  onGameOver: (summary: RoundSummary) => void
 }
 
 export default function GameBoard({ onGameOver }: GameBoardProps) {
@@ -70,6 +71,10 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
   const lastTick = useRef(ROUND_SECONDS)
   const shownSecond = useRef(ROUND_SECONDS)
   const flashKey = useRef(0)
+  // Round-summary tracking for stats/achievements (refs: written in handlers)
+  const bestStreakRef = useRef(0)
+  const fastestRef = useRef(0)
+  const skipsRef = useRef(0)
 
   useEffect(() => {
     const start = Date.now()
@@ -101,7 +106,14 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
   }, [])
 
   useEffect(() => {
-    if (finished) onGameOver(score, hands)
+    if (finished)
+      onGameOver({
+        score,
+        hands,
+        bestStreak: bestStreakRef.current,
+        fastestSolve: fastestRef.current,
+        skips: skipsRef.current,
+      })
   }, [finished, score, hands, onGameOver])
 
   useEffect(() => {
@@ -143,6 +155,8 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
     const newStreak = streak + 1
     const points = handScore(seconds, newStreak)
     const tier = comboTier(newStreak)
+    bestStreakRef.current = Math.max(bestStreakRef.current, newStreak)
+    if (fastestRef.current === 0 || seconds < fastestRef.current) fastestRef.current = seconds
     setScore((s) => s + points)
     setStreak(newStreak)
     setHands((h) => h + 1)
@@ -215,6 +229,7 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
 
   function handleSkip() {
     const answer = solve(hand)
+    skipsRef.current += 1
     setStreak(0)
     setToast(answer ? `One way: ${answer} = 24` : 'Skipped')
     dealNext(score)
@@ -256,13 +271,15 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
 
       <main className="flex flex-col items-center gap-8">
         <div className="flex flex-wrap items-center justify-center gap-4">
-          {cards.map((card) => (
+          {cards.map((card, i) => (
             <Card
               key={card.id}
               label={format(card.value)}
               hanzi={card.base ? HANZI[card.base] : undefined}
               selected={selectedId === card.id}
               difficulty={difficulty}
+              entrance={card.base ? 'deal' : 'pop'}
+              delayMs={card.base ? i * 60 : 0}
               onClick={() => handleCardClick(card.id)}
             />
           ))}
