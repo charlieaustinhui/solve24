@@ -17,7 +17,7 @@ function App() {
 
   return (
     <>
-      <Lanterns />
+      {phase !== 'playing' && <Lanterns />}
       <div className="relative">
         <Screen
           phase={phase}

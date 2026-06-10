@@ -111,3 +111,23 @@ body {
 .anim-lantern { animation: lantern-float 5s ease-in-out infinite; }
 .anim-cloud { animation: cloud-drift linear infinite; }
 .anim-lantern-fall { animation: lantern-fall 2.4s ease-in both; }
+
+@keyframes bg-drift {
+  0%, 100% { transform: scale(1.06) translate(0, 0); }
+  50% { transform: scale(1.13) translate(-1.5%, -1%); }
+}
+@keyframes leaf-fall {
+  0% { transform: translate(0, -12vh) rotate(0deg); }
+  25% { transform: translate(34px, 24vh) rotate(85deg); }
+  50% { transform: translate(-22px, 50vh) rotate(170deg); }
+  75% { transform: translate(28px, 76vh) rotate(255deg); }
+  100% { transform: translate(-12px, 108vh) rotate(340deg); }
+}
+@keyframes gold-fall {
+  0% { transform: translateY(-8vh) rotate(0deg); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateY(108vh) rotate(320deg); opacity: 0.4; }
+}
+.anim-bg-drift { animation: bg-drift 45s ease-in-out infinite; }
+.anim-leaf { animation: leaf-fall linear infinite; }
+.anim-gold { animation: gold-fall linear infinite; }

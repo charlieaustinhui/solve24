@@ -2,8 +2,9 @@
 
 A Chinese/anime-inspired speed-math arcade game. You're dealt four cards (1–10);
 combine **all four** with `+ − × ÷` to make exactly **24** before the 3-minute
-round ends. Hands start easy and get harder as your score climbs (中 at 500 points,
-難 at 1000). Solve fast for bonus points, chain solves to summon the samurai, the
+round ends. Hands start easy and get harder as your score climbs (中 at 1000 points,
+難 at 1750), and the scene changes with you — bamboo forest, emperor's court, dragon
+sky. Solve fast for bonus points, chain solves to summon the samurai, the
 emperor… and the dragon — or bank your score early with **End round**.
 
 ## Play
@@ -20,7 +21,11 @@ npm run dev      # http://localhost:5173
 - Every dealt hand is **guaranteed solvable** — a brute-force solver using exact
   rational arithmetic checks each deal (hands like `3 3 8 8` need `8÷(3−8÷3)`).
 - **Difficulty curve:** the solver counts how many distinct paths reach 24; below
-  500 points you get hands with many routes, past 1000 the near-unique ones.
+  1000 points you get hands with many routes, past 1750 the near-unique ones.
+- **Scenes:** each tier has its own background art (`public/backgrounds/{easy,medium,hard}.png`)
+  with ambient particles — falling bamboo leaves, falling gold, drifting storm clouds.
+  Crossing a tier cuts the scene instantly with a level-up sting. Preview any scene
+  with `?level=easy|medium|hard` in the URL. Missing images fall back to the ink background.
 - **Scoring:** 100 base + up to 150 speed bonus (fades over 15 s) × streak
   multiplier (caps at ×2).
 - **Combo tiers:** streak 3+ summons the samurai 斬!, 5+ the emperor, 8+ the divine
