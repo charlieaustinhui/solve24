@@ -8,12 +8,14 @@ export const HANZI = ['', '一', '二', '三', '四', '五', '六', '七', '八'
 
 export type Difficulty = 'easy' | 'medium' | 'hard'
 
-// Bands calibrated over 3000 random hands: countSolutions() terciles ≈ 8 and 18.
-// More derivation paths to 24 = easier to stumble onto one.
+// More derivation paths to 24 = easier to stumble onto one. Calibrated over
+// 3000 random hands (median 12 paths, p75 = 22, p90 = 39), then shifted up
+// after playtesting: easy = the most forgiving ~12% of hands, and hard never
+// deals the near-unique 1-3 path monsters.
 const BANDS: Record<Difficulty, (count: number) => boolean> = {
-  easy: (c) => c >= 18,
-  medium: (c) => c >= 8 && c < 18,
-  hard: (c) => c >= 1 && c < 8,
+  easy: (c) => c >= 35,
+  medium: (c) => c >= 14 && c < 35,
+  hard: (c) => c >= 4 && c < 14,
 }
 
 /** Stop redrawing after this many tries and accept any solvable hand. */

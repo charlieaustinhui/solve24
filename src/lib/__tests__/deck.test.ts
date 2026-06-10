@@ -29,9 +29,9 @@ describe('deck', () => {
 
   it('deals hands inside each difficulty band', () => {
     const bands: Record<Difficulty, (c: number) => boolean> = {
-      easy: (c) => c >= 18,
-      medium: (c) => c >= 8 && c < 18,
-      hard: (c) => c >= 1 && c < 8,
+      easy: (c) => c >= 35,
+      medium: (c) => c >= 14 && c < 35,
+      hard: (c) => c >= 4 && c < 14,
     }
     for (const difficulty of ['easy', 'medium', 'hard'] as const) {
       for (let i = 0; i < 20; i++) {
