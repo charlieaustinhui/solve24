@@ -25,17 +25,30 @@ interface CardProps {
   hanzi?: string
   selected: boolean
   difficulty: Difficulty
+  /** Mount animation: fresh deals slide in, merged cards pop. GPU-only. */
+  entrance?: 'deal' | 'pop'
+  delayMs?: number
   onClick: () => void
 }
 
 /** A Chinese-tile-styled playing card. Merged cards show fractions like "8/3". */
-export default function Card({ label, hanzi, selected, difficulty, onClick }: CardProps) {
+export default function Card({
+  label,
+  hanzi,
+  selected,
+  difficulty,
+  entrance,
+  delayMs = 0,
+  onClick,
+}: CardProps) {
   const skin = SKIN[difficulty]
+  const entranceClass = entrance === 'deal' ? 'anim-deal' : entrance === 'pop' ? 'anim-pop' : ''
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`relative flex h-36 w-26 items-center justify-center overflow-hidden rounded-xl border-2 shadow-xl shadow-black/50 transition-transform duration-75 sm:h-44 sm:w-32 ${
+      style={delayMs > 0 ? { animationDelay: `${delayMs}ms` } : undefined}
+      className={`relative flex h-36 w-26 items-center justify-center overflow-hidden rounded-xl border-2 shadow-xl shadow-black/50 transition-transform duration-75 sm:h-44 sm:w-32 ${entranceClass} ${
         selected
           ? '-translate-y-3 scale-105 border-gold-300 bg-ink-700 shadow-gold-500/30'
           : `${skin.base} hover:-translate-y-1`

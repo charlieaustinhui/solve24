@@ -2,17 +2,26 @@ import { useState } from 'react'
 import StartScreen from './components/StartScreen'
 import GameBoard from './components/GameBoard'
 import GameOverModal from './components/GameOverModal'
+import type { Achievement } from './lib/achievements'
+import { evaluateRound } from './lib/achievements'
+import type { RoundSummary } from './lib/stats'
+import { recordRound } from './lib/stats'
 
 type Phase = 'idle' | 'playing' | 'gameover'
 
 interface Result {
-  score: number
-  hands: number
+  summary: RoundSummary
+  newAchievements: Achievement[]
+}
+
+const EMPTY_RESULT: Result = {
+  summary: { score: 0, hands: 0, bestStreak: 0, fastestSolve: 0, skips: 0 },
+  newAchievements: [],
 }
 
 function App() {
   const [phase, setPhase] = useState<Phase>('idle')
-  const [result, setResult] = useState<Result>({ score: 0, hands: 0 })
+  const [result, setResult] = useState<Result>(EMPTY_RESULT)
 
   return (
     <>
@@ -32,8 +41,11 @@ function App() {
           result={result}
           onStart={() => setPhase('playing')}
           onMenu={() => setPhase('idle')}
-          onGameOver={(score, hands) => {
-            setResult({ score, hands })
+          onGameOver={(summary) => {
+            // Event handler runs exactly once per round (effects can double
+            // under StrictMode) — safe place to write stats
+            const stats = recordRound(summary)
+            setResult({ summary, newAchievements: evaluateRound(summary, stats) })
             setPhase('gameover')
           }}
         />
@@ -47,7 +59,7 @@ interface ScreenProps {
   result: Result
   onStart: () => void
   onMenu: () => void
-  onGameOver: (score: number, hands: number) => void
+  onGameOver: (summary: RoundSummary) => void
 }
 
 function Screen({ phase, result, onStart, onMenu, onGameOver }: ScreenProps) {
@@ -58,8 +70,9 @@ function Screen({ phase, result, onStart, onMenu, onGameOver }: ScreenProps) {
   if (phase === 'gameover') {
     return (
       <GameOverModal
-        score={result.score}
-        hands={result.hands}
+        score={result.summary.score}
+        hands={result.summary.hands}
+        newAchievements={result.newAchievements}
         onPlayAgain={onStart}
         onMenu={onMenu}
       />
