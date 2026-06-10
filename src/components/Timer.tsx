@@ -4,6 +4,13 @@ interface TimerProps {
   timeLeft: number
 }
 
+function formatClock(seconds: number): string {
+  const whole = Math.ceil(seconds)
+  const m = Math.floor(whole / 60)
+  const s = whole % 60
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
 export default function Timer({ timeLeft }: TimerProps) {
   const urgent = timeLeft <= 10
   const pct = Math.max(0, (timeLeft / ROUND_SECONDS) * 100)
@@ -14,7 +21,7 @@ export default function Timer({ timeLeft }: TimerProps) {
           urgent ? 'animate-pulse text-lantern-400' : 'text-paper-100'
         }`}
       >
-        {Math.ceil(timeLeft)}
+        {formatClock(timeLeft)}
       </span>
       <div className="h-2 w-full overflow-hidden rounded-full bg-ink-700">
         <div

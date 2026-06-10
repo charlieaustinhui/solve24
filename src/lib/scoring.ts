@@ -1,5 +1,14 @@
-export const ROUND_SECONDS = 60
+import type { Difficulty } from './deck'
+
+export const ROUND_SECONDS = 180
 export const BASE_POINTS = 100
+
+/** Hands get harder as the round progresses: one minute per difficulty tier. */
+export function difficultyAt(elapsedSeconds: number): Difficulty {
+  if (elapsedSeconds < 60) return 'easy'
+  if (elapsedSeconds < 120) return 'medium'
+  return 'hard'
+}
 
 /** Up to +150 for instant solves, fading to 0 at 15 seconds per hand. */
 export function speedBonus(secondsOnHand: number): number {

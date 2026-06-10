@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { speedBonus, streakMultiplier, handScore, comboTier } from '../scoring'
+import {
+  ROUND_SECONDS,
+  comboTier,
+  difficultyAt,
+  handScore,
+  speedBonus,
+  streakMultiplier,
+} from '../scoring'
 
 describe('scoring', () => {
   it('awards up to +150 speed bonus, fading to 0 at 15s', () => {
@@ -23,6 +30,16 @@ describe('scoring', () => {
     expect(handScore(20, 1)).toBe(100)
     expect(handScore(0, 1)).toBe(250)
     expect(handScore(0, 11)).toBe(500)
+  })
+
+  it('escalates difficulty one tier per minute across the 3-minute round', () => {
+    expect(ROUND_SECONDS).toBe(180)
+    expect(difficultyAt(0)).toBe('easy')
+    expect(difficultyAt(59.9)).toBe('easy')
+    expect(difficultyAt(60)).toBe('medium')
+    expect(difficultyAt(119.9)).toBe('medium')
+    expect(difficultyAt(120)).toBe('hard')
+    expect(difficultyAt(180)).toBe('hard')
   })
 
   it('maps streaks to combo tiers', () => {
