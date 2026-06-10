@@ -233,6 +233,11 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
     >
       <Background difficulty={difficulty} />
       <header className="relative flex w-full max-w-2xl flex-col items-center gap-4">
+        {forcedLevel && (
+          <span className="absolute top-0 left-0 rounded-md border border-gold-500/40 bg-ink-900/80 px-2 py-1 font-arcade text-xs text-gold-400/90">
+            scene pinned ({forcedLevel}) — remove ?level from the URL to play normally
+          </span>
+        )}
         <ScoreHud score={score} streak={streak} hands={hands} difficulty={difficulty} />
         <Timer timeLeft={timeLeft} />
         <button
