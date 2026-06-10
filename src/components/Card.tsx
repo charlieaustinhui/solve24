@@ -35,7 +35,7 @@ export default function Card({ label, hanzi, selected, difficulty, onClick }: Ca
     <button
       type="button"
       onClick={onClick}
-      className={`relative flex h-36 w-26 items-center justify-center overflow-hidden rounded-xl border-2 shadow-xl shadow-black/50 transition-all duration-150 sm:h-44 sm:w-32 ${
+      className={`relative flex h-36 w-26 items-center justify-center overflow-hidden rounded-xl border-2 shadow-xl shadow-black/50 transition-transform duration-75 sm:h-44 sm:w-32 ${
         selected
           ? '-translate-y-3 scale-105 border-gold-300 bg-ink-700 shadow-gold-500/30'
           : `${skin.base} hover:-translate-y-1`
