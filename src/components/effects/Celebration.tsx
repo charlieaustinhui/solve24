@@ -53,19 +53,22 @@ export default function Celebration({ points, tier }: CelebrationProps) {
       {tier === 'samurai' && <Samurai />}
       {tier === 'emperor' && <Emperor />}
       {tier === 'dragon' && <Dragon />}
-      <div className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-2">
-        <div className="anim-speed-lines absolute">
-          <svg width="480" height="480" viewBox="0 0 480 480" aria-hidden>
-            <g stroke="#f4ead8" strokeWidth="2" opacity="0.7">
+      {/* Banner anchors to the board layout (absolute, above the footer
+          controls), never over the cards — fixed positioning would drift
+          with viewport scroll */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-24 z-50 flex flex-row items-center justify-center gap-4">
+        <div className="absolute">
+          <svg width="280" height="280" viewBox="0 0 280 280" aria-hidden className="anim-speed-lines">
+            <g stroke="#f4ead8" strokeWidth="1.5" opacity="0.6">
               {Array.from({ length: 18 }, (_, i) => {
                 const a = (i * Math.PI) / 9
                 return (
                   <line
                     key={i}
-                    x1={240 + Math.cos(a) * 90}
-                    y1={240 + Math.sin(a) * 90}
-                    x2={240 + Math.cos(a) * 230}
-                    y2={240 + Math.sin(a) * 230}
+                    x1={140 + Math.cos(a) * 55}
+                    y1={140 + Math.sin(a) * 55}
+                    x2={140 + Math.cos(a) * 135}
+                    y2={140 + Math.sin(a) * 135}
                   />
                 )
               })}
@@ -73,11 +76,11 @@ export default function Celebration({ points, tier }: CelebrationProps) {
           </svg>
         </div>
         {tier === 'none' && (
-          <span className="anim-stamp inline-block rounded-lg border-4 border-lantern-500 bg-lantern-600/90 px-5 py-2 font-brush text-6xl text-paper-100 shadow-2xl">
+          <span className="anim-stamp inline-block rounded-lg border-4 border-lantern-500 bg-lantern-600/90 px-4 py-1 font-brush text-4xl text-paper-100 shadow-2xl">
             正解!
           </span>
         )}
-        <span className="anim-points font-arcade text-5xl text-gold-300 drop-shadow-lg">
+        <span className="anim-points font-arcade text-4xl text-gold-300 drop-shadow-lg">
           +{points} 分
         </span>
       </div>

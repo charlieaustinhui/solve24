@@ -3,10 +3,13 @@ import type { Difficulty } from './deck'
 export const ROUND_SECONDS = 180
 export const BASE_POINTS = 100
 
-/** Hands get harder as the round progresses: one minute per difficulty tier. */
-export function difficultyAt(elapsedSeconds: number): Difficulty {
-  if (elapsedSeconds < 60) return 'easy'
-  if (elapsedSeconds < 120) return 'medium'
+export const MEDIUM_AT = 500
+export const HARD_AT = 1000
+
+/** Hands get harder as your score climbs, not with the clock. */
+export function difficultyForScore(score: number): Difficulty {
+  if (score < MEDIUM_AT) return 'easy'
+  if (score < HARD_AT) return 'medium'
   return 'hard'
 }
 

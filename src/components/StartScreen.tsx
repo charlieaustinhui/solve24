@@ -26,8 +26,9 @@ export default function StartScreen({ onStart }: StartScreenProps) {
         </p>
         <p className="mt-3 text-sm text-paper-200/70">
           Tap a card, an operator, then another card to merge them. Hands get harder
-          each minute (易 → 中 → 難). Solve fast for bonus points — chain solves to
-          summon the samurai, the emperor… and the dragon.
+          as your score climbs (中 at 500 · 難 at 1000). Solve fast for bonus points —
+          chain solves to summon the samurai, the emperor… and the dragon. Cash out
+          anytime with End round.
         </p>
       </div>
 

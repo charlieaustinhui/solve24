@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
+  HARD_AT,
+  MEDIUM_AT,
   ROUND_SECONDS,
   comboTier,
-  difficultyAt,
+  difficultyForScore,
   handScore,
   speedBonus,
   streakMultiplier,
@@ -32,14 +34,14 @@ describe('scoring', () => {
     expect(handScore(0, 11)).toBe(500)
   })
 
-  it('escalates difficulty one tier per minute across the 3-minute round', () => {
+  it('escalates difficulty by score: easy to 500, medium to 1000, then hard', () => {
     expect(ROUND_SECONDS).toBe(180)
-    expect(difficultyAt(0)).toBe('easy')
-    expect(difficultyAt(59.9)).toBe('easy')
-    expect(difficultyAt(60)).toBe('medium')
-    expect(difficultyAt(119.9)).toBe('medium')
-    expect(difficultyAt(120)).toBe('hard')
-    expect(difficultyAt(180)).toBe('hard')
+    expect(difficultyForScore(0)).toBe('easy')
+    expect(difficultyForScore(MEDIUM_AT - 1)).toBe('easy')
+    expect(difficultyForScore(MEDIUM_AT)).toBe('medium')
+    expect(difficultyForScore(HARD_AT - 1)).toBe('medium')
+    expect(difficultyForScore(HARD_AT)).toBe('hard')
+    expect(difficultyForScore(99999)).toBe('hard')
   })
 
   it('maps streaks to combo tiers', () => {
