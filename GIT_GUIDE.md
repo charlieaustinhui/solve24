@@ -83,3 +83,52 @@ A running cheat sheet of every git concept used in this project, in the order we
   carried the `分` suffix into it (the hotfix). Don't blindly pick a side.
 - **Build/test before committing the merge** — a file with leftover `>>>>>>>` markers
   won't compile, but subtler logical conflicts can.
+
+## Lesson 6 — Amend & stash
+
+| Command | What it does |
+|---|---|
+| `git commit --amend --no-edit` | Replaces the last commit with staged changes added (same message) |
+| `git stash -u` | Shelves all uncommitted work (`-u` includes brand-new files) |
+| `git stash list` / `git stash pop` | See the shelf / take the top item back |
+
+### Key ideas
+
+- **Amend replaces, never edits** — the commit hash changes. Never amend a commit
+  you've already pushed; others may have built on the old hash.
+- **Stash is for interruptions**: half-done work + urgent bug = stash, fix, pop.
+
+## Lesson 7 — Releases
+
+| Command | What it does |
+|---|---|
+| `git tag -a v1.0.0 -m "..."` | Annotated tag: a permanent named pointer to this commit |
+| `git tag` | List tags |
+| `npm run lint && npm test && npm run build` | The pre-release gauntlet |
+
+### Key ideas
+
+- Tags mark releases; unlike branches they never move. `v1.0.0` will mean this
+  exact commit forever — that's what changelogs and bug reports refer to.
+- Semantic versioning: `MAJOR.MINOR.PATCH` — breaking change / new feature / bug fix.
+- **A linter is a teammate**: react-hooks v7 caught render-purity violations the
+  tests couldn't. Lint runs before every release (ideally before every commit).
+
+## The full workflow we practiced
+
+```
+main ──●──────────●─────●──────────●──────●──── v1.0.0
+        \        /       \        /      /
+         engine─●          ui────●      /
+                            effects ──●   ← merge conflict resolved here
+                            highscores ●
+```
+
+1. `git switch -c feature/x` — branch off fresh `main`
+2. Build in small, logical commits (stage selectively)
+3. Test, lint, build — *then* merge: `git switch main && git merge --no-ff feature/x`
+4. Delete the merged branch, repeat
+5. Tag releases on `main`
+
+Next steps when you're ready: create a GitHub repo, `git remote add origin <url>`,
+`git push -u origin main --tags`, and open pull requests instead of merging locally.

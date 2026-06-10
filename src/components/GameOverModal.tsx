@@ -38,9 +38,13 @@ export default function GameOverModal({ score, hands, onPlayAgain, onMenu }: Gam
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 py-8">
       {showDragon && <Dragon />}
       {isRecord ? (
-        <h1 className="font-brush text-7xl text-gold-400">新紀錄!</h1>
+        <h1 className="font-brush text-5xl whitespace-nowrap text-gold-400 sm:text-7xl">
+          新紀錄!
+        </h1>
       ) : (
-        <h1 className="font-brush text-7xl text-lantern-400">時間到</h1>
+        <h1 className="font-brush text-5xl whitespace-nowrap text-lantern-400 sm:text-7xl">
+          時間到
+        </h1>
       )}
       <p className="font-arcade text-xl tracking-widest text-paper-200">
         {isRecord ? 'NEW HIGH SCORE' : "TIME'S UP"}

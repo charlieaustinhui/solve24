@@ -1,73 +1,50 @@
-# React + TypeScript + Vite
+# 算二十四 · Solve 24
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Chinese/anime-inspired speed-math arcade game. You're dealt four cards (1–10);
+combine **all four** with `+ − × ÷` to make exactly **24** before the 60-second
+round ends. Solve fast for bonus points, chain solves to summon the samurai, the
+emperor… and the dragon.
 
-Currently, two official plugins are available:
+## Play
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev      # http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## How it works
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **Tap a card, an operator, then another card** — they merge into one card showing
+  the result (fractions like `8/3` are legal mid-solve). Get the last card to 24.
+- Every dealt hand is **guaranteed solvable** — a brute-force solver using exact
+  rational arithmetic checks each deal (hands like `3 3 8 8` need `8÷(3−8÷3)`).
+- **Scoring:** 100 base + up to 150 speed bonus (fades over 15 s) × streak
+  multiplier (caps at ×2).
+- **Combo tiers:** streak 3+ summons the samurai 斬!, 5+ the emperor, 8+ the divine
+  dragon (screen shake + lantern rain).
+- **Top-10 high scores** persist in `localStorage` with arcade-style initials.
+- **All audio is synthesized** with the Web Audio API — gongs, pentatonic arpeggios,
+  katana shings. No sound files. Mute with the 音 button.
+- All art is hand-built inline SVG. No image assets.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Commands
+
+```bash
+npm run dev      # dev server with hot reload
+npm test         # Vitest unit tests (solver, scoring, high scores)
+npm run lint     # ESLint (react-hooks v7 purity rules)
+npm run build    # type-check + production build
 ```
+
+## Project layout
+
+| Path | Role |
+|---|---|
+| `src/lib/` | Pure game logic: rational math, 24 solver, dealer, scoring, audio synth, high scores |
+| `src/components/` | React UI: board, cards, timer, HUD, screens |
+| `src/components/effects/` | Celebrations: confetti, ink stamp, samurai, emperor, dragon, lanterns |
+| `GIT_GUIDE.md` | Git cheat sheet built while developing this project branch-by-branch |
+
+Built as a learning project — the git history is the curriculum: check
+`git log --oneline --graph` to see the feature-branch workflow, including a
+deliberately staged merge conflict.
