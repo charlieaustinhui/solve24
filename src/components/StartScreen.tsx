@@ -1,3 +1,6 @@
+import { loadHighScores } from '../lib/highscores'
+import HighScores from './HighScores'
+
 interface StartScreenProps {
   onStart: () => void
 }
@@ -29,6 +32,8 @@ export default function StartScreen({ onStart }: StartScreenProps) {
       >
         開始 · Start
       </button>
+
+      <HighScores scores={loadHighScores()} />
     </main>
   )
 }
