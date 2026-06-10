@@ -56,3 +56,8 @@ npm run build    # type-check + production build
 Built as a learning project — the git history is the curriculum: check
 `git log --oneline --graph` to see the feature-branch workflow, including a
 deliberately staged merge conflict.
+
+## License
+
+Copyright © 2026 Charlie Hui. All rights reserved. No permission is granted to
+copy, modify, or distribute this software.
