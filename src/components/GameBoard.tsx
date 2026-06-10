@@ -68,6 +68,7 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
   const handStart = useRef(0)
   const endTime = useRef(0)
   const lastTick = useRef(ROUND_SECONDS)
+  const shownSecond = useRef(ROUND_SECONDS)
   const flashKey = useRef(0)
 
   useEffect(() => {
@@ -79,8 +80,13 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
       const now = Date.now()
       nowRef.current = now
       const left = Math.max(0, (endTime.current - now) / 1000)
-      setTimeLeft(left)
       const whole = Math.ceil(left)
+      // Only re-render when the displayed second changes (1/sec), not every
+      // 200ms poll — constant full-tree renders were delaying click handling
+      if (whole !== shownSecond.current) {
+        shownSecond.current = whole
+        setTimeLeft(left)
+      }
       if (whole <= 10 && whole > 0 && whole !== lastTick.current) {
         lastTick.current = whole
         sfx.tick()
