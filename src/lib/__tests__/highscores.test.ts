@@ -18,17 +18,32 @@ describe('highscores', () => {
   })
 
   it('adds scores sorted descending and persists', () => {
-    addHighScore({ initials: 'AAA', score: 300, hands: 2 })
-    addHighScore({ initials: 'BBB', score: 700, hands: 5 })
-    addHighScore({ initials: 'CCC', score: 500, hands: 3 })
+    addHighScore({ name: 'AAA', score: 300, hands: 2 })
+    addHighScore({ name: 'BBB', score: 700, hands: 5 })
+    addHighScore({ name: 'CCC', score: 500, hands: 3 })
     const board = loadHighScores()
-    expect(board.map((s) => s.initials)).toEqual(['BBB', 'CCC', 'AAA'])
+    expect(board.map((s) => s.name)).toEqual(['BBB', 'CCC', 'AAA'])
     expect(board[0].date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
+  it('migrates pre-leaderboard entries that used `initials`', () => {
+    localStorage.setItem(
+      'solve24-highscores',
+      JSON.stringify([
+        { initials: 'OLD', score: 400, hands: 3, date: '2026-06-01' },
+        { name: 'NEW NAME', score: 200, hands: 1, date: '2026-06-09' },
+        { score: 999 }, // neither name nor initials — dropped
+      ]),
+    )
+    expect(loadHighScores()).toEqual([
+      { name: 'OLD', score: 400, hands: 3, date: '2026-06-01' },
+      { name: 'NEW NAME', score: 200, hands: 1, date: '2026-06-09' },
+    ])
   })
 
   it('keeps only the top 10', () => {
     for (let i = 1; i <= 14; i++) {
-      addHighScore({ initials: 'P' + i, score: i * 100, hands: i })
+      addHighScore({ name: 'P' + i, score: i * 100, hands: i })
     }
     const board = loadHighScores()
     expect(board).toHaveLength(MAX_SCORES)
@@ -40,7 +55,7 @@ describe('highscores', () => {
     expect(qualifies(0)).toBe(false)
     expect(qualifies(50)).toBe(true)
     for (let i = 1; i <= 10; i++) {
-      addHighScore({ initials: 'XXX', score: i * 100, hands: i })
+      addHighScore({ name: 'XXX', score: i * 100, hands: i })
     }
     expect(qualifies(100)).toBe(false)
     expect(qualifies(101)).toBe(true)

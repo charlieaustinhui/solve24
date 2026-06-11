@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { ACHIEVEMENTS, loadUnlocked } from '../lib/achievements'
-import { loadHighScores } from '../lib/highscores'
 import { loadStats } from '../lib/stats'
-import HighScores from './HighScores'
+import LeaderboardTabs from './LeaderboardTabs'
 
 interface StartScreenProps {
   onStart: () => void
@@ -94,7 +93,7 @@ export default function StartScreen({ onStart }: StartScreenProps) {
         開始 · Start
       </button>
 
-      <HighScores scores={loadHighScores()} />
+      <LeaderboardTabs />
 
       <div className="flex gap-3">
         <button

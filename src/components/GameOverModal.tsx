@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { Achievement } from '../lib/achievements'
 import type { HighScore } from '../lib/highscores'
-import { addHighScore, loadHighScores, qualifies } from '../lib/highscores'
+import { MAX_NAME_LENGTH, addHighScore, loadHighScores, qualifies } from '../lib/highscores'
+import {
+  fetchGlobalScores,
+  globalQualifies,
+  isNameAllowed,
+  submitGlobalScore,
+} from '../lib/leaderboard'
 import { sfx } from '../lib/audio'
-import HighScores from './HighScores'
+import LeaderboardTabs from './LeaderboardTabs'
 import Dragon from './effects/Dragon'
 
 interface GameOverModalProps {
@@ -14,6 +20,13 @@ interface GameOverModalProps {
   onMenu: () => void
 }
 
+interface SavedBoards {
+  local: HighScore[]
+  localRank?: number
+  global: HighScore[] | null
+  globalRank?: number
+}
+
 export default function GameOverModal({
   score,
   hands,
@@ -21,25 +34,60 @@ export default function GameOverModal({
   onPlayAgain,
   onMenu,
 }: GameOverModalProps) {
-  const [isRecord] = useState(() => qualifies(score))
-  const [initials, setInitials] = useState('')
-  const [scores, setScores] = useState<HighScore[]>(loadHighScores)
-  const [savedRank, setSavedRank] = useState<number | undefined>(undefined)
-  const [showDragon, setShowDragon] = useState(isRecord)
-  const entering = isRecord && savedRank === undefined
+  const [localRecord] = useState(() => qualifies(score))
+  const [globalBoard, setGlobalBoard] = useState<HighScore[] | null | 'loading'>('loading')
+  const [name, setName] = useState('')
+  const [nameRejected, setNameRejected] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState<SavedBoards | null>(null)
+  const [dragonDone, setDragonDone] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+    void fetchGlobalScores().then((board) => {
+      if (alive) setGlobalBoard(board)
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  // A global-only record can arrive after the fetch resolves, flipping this on late.
+  const globalRecord = Array.isArray(globalBoard) && globalQualifies(score, globalBoard)
+  const isRecord = localRecord || globalRecord
+  const entering = isRecord && saved === null
 
   useEffect(() => {
     if (!isRecord) return
     sfx.highScore()
-    const t = setTimeout(() => setShowDragon(false), 2400)
+    const t = setTimeout(() => setDragonDone(true), 2400)
     return () => clearTimeout(t)
   }, [isRecord])
+  const showDragon = isRecord && !dragonDone
 
-  function save() {
-    const name = (initials || 'AAA').padEnd(3, 'A').slice(0, 3)
-    const board = addHighScore({ initials: name, score, hands })
-    setScores(board)
-    setSavedRank(board.findIndex((s) => s.initials === name && s.score === score))
+  async function save() {
+    const trimmed = name.trim()
+    if (trimmed.length === 0 || saving) return
+    if (!isNameAllowed(trimmed)) {
+      setNameRejected(true)
+      return
+    }
+    setSaving(true)
+    // Local board first — synchronous, can't fail.
+    const local = localRecord
+      ? addHighScore({ name: trimmed, score, hands })
+      : loadHighScores()
+    const localRank = local.findIndex((s) => s.name === trimmed && s.score === score)
+    // The game submits its own score; the player only contributed the name.
+    const global = await submitGlobalScore({ name: trimmed, score, hands })
+    const globalRank = global?.findIndex((s) => s.name === trimmed && s.score === score)
+    setSaved({
+      local,
+      localRank: localRank >= 0 ? localRank : undefined,
+      global,
+      globalRank: globalRank !== undefined && globalRank >= 0 ? globalRank : undefined,
+    })
+    setSaving(false)
   }
 
   return (
@@ -83,37 +131,51 @@ export default function GameOverModal({
         <form
           onSubmit={(e) => {
             e.preventDefault()
-            save()
+            void save()
           }}
           className="flex flex-col items-center gap-3 rounded-xl border border-gold-600/40 bg-ink-900/80 px-8 py-5"
         >
-          <label htmlFor="initials" className="font-arcade text-sm tracking-widest text-paper-200">
-            ENTER YOUR INITIALS
+          <label htmlFor="player-name" className="font-arcade text-sm tracking-widest text-paper-200">
+            ENTER YOUR NAME
           </label>
           <input
-            id="initials"
+            id="player-name"
             autoFocus
-            value={initials}
-            onChange={(e) =>
-              setInitials(
+            value={name}
+            onChange={(e) => {
+              setNameRejected(false)
+              setName(
                 e.target.value
                   .toUpperCase()
-                  .replace(/[^A-Z]/g, '')
-                  .slice(0, 3),
+                  .replace(/[^A-Z0-9 ]/g, '')
+                  .slice(0, MAX_NAME_LENGTH),
               )
-            }
-            placeholder="AAA"
-            className="w-32 rounded-lg border-2 border-gold-500 bg-ink-950 px-3 py-2 text-center font-arcade text-4xl tracking-[0.3em] text-gold-300 outline-none placeholder:text-paper-200/20"
+            }}
+            placeholder="YOUR NAME"
+            className="w-72 rounded-lg border-2 border-gold-500 bg-ink-950 px-3 py-2 text-center font-arcade text-2xl tracking-[0.15em] text-gold-300 outline-none placeholder:text-paper-200/20"
           />
+          {nameRejected && (
+            <p className="font-arcade text-xs text-lantern-400">
+              THAT NAME ISN'T ALLOWED — PICK ANOTHER
+            </p>
+          )}
           <button
             type="submit"
-            className="rounded-lg border-2 border-gold-400 bg-lantern-600 px-6 py-2 font-brush text-2xl text-paper-100 transition-transform hover:scale-105"
+            disabled={name.trim().length === 0 || saving}
+            className="rounded-lg border-2 border-gold-400 bg-lantern-600 px-6 py-2 font-brush text-2xl text-paper-100 transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
           >
-            刻名 · Engrave
+            {saving ? '刻名中…' : '刻名 · Engrave'}
           </button>
         </form>
+      ) : saved !== null ? (
+        <LeaderboardTabs
+          globalScores={saved.global}
+          localScores={saved.local}
+          globalHighlight={saved.globalRank}
+          localHighlight={saved.localRank}
+        />
       ) : (
-        <HighScores scores={scores} highlight={savedRank} />
+        <LeaderboardTabs globalScores={globalBoard} />
       )}
 
       <div className="flex gap-4">
