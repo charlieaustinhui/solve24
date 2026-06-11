@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import StartScreen from './components/StartScreen'
 import GameBoard from './components/GameBoard'
 import GameOverModal from './components/GameOverModal'
@@ -53,6 +54,7 @@ function App() {
           }}
         />
       </div>
+      <Analytics />
     </>
   )
 }
