@@ -4,10 +4,13 @@ import { Redis } from '@upstash/redis'
 import type { HighScore } from '../src/lib/highscores.js'
 import { MAX_SCORES } from '../src/lib/highscores.js'
 import { sanitizeEntry } from '../src/lib/leaderboard.js'
+import { MAX_TOKEN_AGE_MS, verifyToken } from '../src/lib/roundToken.js'
 
 const KEY = 'lb:scores'
 /** Keep a deeper history than the visible top 10 so the tail can shift. */
 const MAX_KEPT = 100
+/** Spent round-token nonces live here just long enough to outlast the token. */
+const NONCE_TTL_SECONDS = Math.ceil(MAX_TOKEN_AGE_MS / 1000)
 
 /** Compact member stored in the sorted set; the score lives in the zset itself. */
 interface Member {
@@ -54,6 +57,18 @@ export async function POST(req: Request): Promise<Response> {
   } catch {
     return Response.json({ error: 'invalid' }, { status: 400 })
   }
+  // The token proves the server itself opened this round (kills bare forges) and
+  // is checked for signature + freshness here; single-use is enforced below.
+  // A thrown error here means misconfiguration (no secret), not a bad token.
+  let token: ReturnType<typeof verifyToken>
+  try {
+    token = verifyToken((raw as { token?: unknown })?.token)
+  } catch {
+    return Response.json({ error: 'unavailable' }, { status: 503 })
+  }
+  if (!token.ok) {
+    return Response.json({ error: 'invalid' }, { status: 400 })
+  }
   const result = sanitizeEntry(raw)
   if (!result.ok) {
     return Response.json({ error: result.reason }, { status: 400 })
@@ -67,6 +82,15 @@ export async function POST(req: Request): Promise<Response> {
   }
   try {
     const client = redis()
+    // Single-use: claim the nonce atomically. If it's already set, the token was
+    // already spent (replay) — reject without writing a score.
+    const claimed = await client.set(`lb:nonce:${token.nonce}`, 1, {
+      nx: true,
+      ex: NONCE_TTL_SECONDS,
+    })
+    if (claimed === null) {
+      return Response.json({ error: 'invalid' }, { status: 400 })
+    }
     await client.zadd(KEY, { score, member })
     // Drop everything below the kept range (negative ranks count from the top).
     await client.zremrangebyrank(KEY, 0, -(MAX_KEPT + 1))

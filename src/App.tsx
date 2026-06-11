@@ -12,11 +12,14 @@ type Phase = 'idle' | 'playing' | 'gameover'
 interface Result {
   summary: RoundSummary
   newAchievements: Achievement[]
+  /** Signed round token to submit with a global high score (null if offline). */
+  token: string | null
 }
 
 const EMPTY_RESULT: Result = {
   summary: { score: 0, hands: 0, bestStreak: 0, fastestSolve: 0, skips: 0 },
   newAchievements: [],
+  token: null,
 }
 
 function App() {
@@ -41,11 +44,11 @@ function App() {
           result={result}
           onStart={() => setPhase('playing')}
           onMenu={() => setPhase('idle')}
-          onGameOver={(summary) => {
+          onGameOver={(summary, token) => {
             // Event handler runs exactly once per round (effects can double
             // under StrictMode) — safe place to write stats
             const stats = recordRound(summary)
-            setResult({ summary, newAchievements: evaluateRound(summary, stats) })
+            setResult({ summary, newAchievements: evaluateRound(summary, stats), token })
             setPhase('gameover')
           }}
         />
@@ -59,7 +62,7 @@ interface ScreenProps {
   result: Result
   onStart: () => void
   onMenu: () => void
-  onGameOver: (summary: RoundSummary) => void
+  onGameOver: (summary: RoundSummary, token: string | null) => void
 }
 
 function Screen({ phase, result, onStart, onMenu, onGameOver }: ScreenProps) {
@@ -73,6 +76,7 @@ function Screen({ phase, result, onStart, onMenu, onGameOver }: ScreenProps) {
         score={result.summary.score}
         hands={result.summary.hands}
         newAchievements={result.newAchievements}
+        roundToken={result.token}
         onPlayAgain={onStart}
         onMenu={onMenu}
       />

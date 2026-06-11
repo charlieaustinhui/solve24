@@ -21,5 +21,7 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "comment": "roundToken.ts is server-only (node:crypto); it and its test belong to the api project, not the browser build",
+  "exclude": ["src/lib/roundToken.ts", "src/lib/__tests__/roundToken.test.ts"]
 }
