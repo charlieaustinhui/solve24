@@ -23,7 +23,7 @@ export default function HighScores({ scores, highlight }: HighScoresProps) {
       <ol className="flex flex-col gap-1">
         {scores.map((s, i) => (
           <li
-            key={`${s.initials}-${s.score}-${i}`}
+            key={`${s.name}-${s.score}-${i}`}
             className={`flex items-center gap-3 rounded-md px-2 py-1 font-arcade text-lg ${
               i === highlight
                 ? 'bg-lantern-600/40 text-gold-300'
@@ -35,8 +35,8 @@ export default function HighScores({ scores, highlight }: HighScoresProps) {
             <span className="w-6 text-center font-brush text-xl text-lantern-400">
               {RANK_HANZI[i]}
             </span>
-            <span className="w-12 tracking-widest">{s.initials}</span>
-            <span className="flex-1 text-right tabular-nums">{s.score}</span>
+            <span className="min-w-0 flex-1 truncate tracking-wider">{s.name}</span>
+            <span className="text-right tabular-nums">{s.score}</span>
             <span className="w-16 text-right text-xs text-paper-200/50">
               {s.hands} hand{s.hands === 1 ? '' : 's'}
             </span>

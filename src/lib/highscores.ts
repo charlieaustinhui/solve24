@@ -1,5 +1,5 @@
 export interface HighScore {
-  initials: string
+  name: string
   score: number
   hands: number
   date: string
@@ -7,6 +7,7 @@ export interface HighScore {
 
 const KEY = 'solve24-highscores'
 export const MAX_SCORES = 10
+export const MAX_NAME_LENGTH = 10
 
 /** localStorage is missing in tests (node) and can throw in private browsing. */
 function storage(): Storage | null {
@@ -17,13 +18,27 @@ function storage(): Storage | null {
   }
 }
 
+/** Entries saved before the global leaderboard used 3-letter `initials`. */
+function migrate(entry: unknown): HighScore | null {
+  if (typeof entry !== 'object' || entry === null) return null
+  const e = entry as Record<string, unknown>
+  const name = e.name ?? e.initials
+  if (typeof name !== 'string' || typeof e.score !== 'number') return null
+  return {
+    name,
+    score: e.score,
+    hands: typeof e.hands === 'number' ? e.hands : 0,
+    date: typeof e.date === 'string' ? e.date : '',
+  }
+}
+
 export function loadHighScores(): HighScore[] {
   const raw = storage()?.getItem(KEY)
   if (!raw) return []
   try {
     const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
-    return parsed as HighScore[]
+    return parsed.map(migrate).filter((e): e is HighScore => e !== null)
   } catch {
     return []
   }
