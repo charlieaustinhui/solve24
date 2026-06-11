@@ -5,7 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev        # Vite dev server at http://localhost:5173
+npm run dev        # Vite dev server at http://localhost:5173 (no API — leaderboard falls back to local)
+npm run dev:full   # vercel dev: Vite + the /api functions (needs `npx vercel env pull .env.development.local` once)
 npm test           # Vitest, full suite (vitest run)
 npx vitest run src/lib/__tests__/solver.test.ts   # single test file
 npx vitest run -t "rejects unsolvable hands"      # single test by name
@@ -15,7 +16,7 @@ npm run build      # tsc -b type-check + vite build (the pre-merge gauntlet is l
 
 ## Architecture
 
-Single-page Vite + React 19 + TypeScript + Tailwind v4 game. No backend, no router — `src/App.tsx` is a phase machine (`idle → playing → gameover`) that swaps `StartScreen` / `GameBoard` / `GameOverModal`. All persistence is localStorage.
+Single-page Vite + React 19 + TypeScript + Tailwind v4 game. No router — `src/App.tsx` is a phase machine (`idle → playing → gameover`) that swaps `StartScreen` / `GameBoard` / `GameOverModal`. Personal persistence is localStorage; the **global leaderboard** is the one server-side piece (see below).
 
 ### Engine (`src/lib/`) — pure, fully unit-tested, no React
 
@@ -24,7 +25,15 @@ Single-page Vite + React 19 + TypeScript + Tailwind v4 game. No backend, no rout
 - `deck.ts` — `dealHand(difficulty)` redraws until a hand's `countSolutions` falls in the tier's band (`BANDS`: easy ≥35 paths, medium 14–34, hard 4–13; calibrated empirically over 3000 hands). Bounded by `MAX_ATTEMPTS` with a solvable fallback so a degenerate RNG can never hang. The band constants are duplicated in `deck.test.ts` — change both.
 - `scoring.ts` — round length, speed bonus, streak multiplier (caps ×2), `difficultyForScore()` (score thresholds `MEDIUM_AT`/`HARD_AT` — tests assert via these constants, so retuning them doesn't break tests), and `comboTier()` (streak 3/5/8 → samurai/emperor/dragon celebrations).
 - `audio.ts` — every sound is synthesized via Web Audio (oscillators + noise + envelopes); there are no audio asset files. All sfx check the module-level mute flag (persisted in localStorage).
-- `highscores.ts` / `stats.ts` / `achievements.ts` — localStorage stores sharing the same defensive pattern: `storage()` try/catch accessor, garbage-tolerant JSON parse. Tests mock localStorage with `vi.stubGlobal` (see `highscores.test.ts` for the pattern).
+- `highscores.ts` / `stats.ts` / `achievements.ts` — localStorage stores sharing the same defensive pattern: `storage()` try/catch accessor, garbage-tolerant JSON parse. Tests mock localStorage with `vi.stubGlobal` (see `highscores.test.ts` for the pattern). `HighScore.name` is 1–10 chars (was 3-letter `initials`; `loadHighScores` migrates old entries).
+- `leaderboard.ts` — shared by client **and** the API function: `sanitizeEntry()` (authoritative validation — name `[A-Z0-9 ]{1,10}`, profanity check via `obscenity`, score plausibility bound `hands × MAX_HAND_SCORE` derived from scoring constants), `globalQualifies()`, and fetch/submit helpers that return `null` on any failure (the offline signal).
+
+### Global leaderboard (`api/leaderboard.ts`)
+
+- Vercel serverless function (root `api/` folder, Web-handler signature). `GET` → top 10; `POST` → `sanitizeEntry()` → `ZADD` to Upstash Redis sorted set `lb:scores` (member JSON `{i,h,d,n}`, score in the zset), trimmed to 100, returns fresh top 10. 400 carries `{error: "invalid" | "inappropriate"}` so the form can react; Redis trouble → 503.
+- **The client never sends a trusted score-path**: the game submits its own computed score, the player only types a name, the server re-validates and sets the date. Scores are still client-computed (replay verification deliberately deferred).
+- Env vars: `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` (or `KV_REST_API_*` — both supported), injected by the Upstash Vercel Marketplace integration; pull locally with `npx vercel env pull .env.development.local`.
+- UI: `LeaderboardTabs.tsx` (Global ⇄ Local) — fetch-on-view, no polling; Global degrades to the local board with a notice when the API is unreachable (e.g. plain `npm run dev`).
 
 ### Game flow
 

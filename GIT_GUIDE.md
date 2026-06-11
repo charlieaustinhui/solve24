@@ -152,3 +152,32 @@ Next steps when you're ready: create a GitHub repo, `git remote add origin <url>
   it detects the Vite preset (`npm run build` → `dist/`) → Deploy. Every future
   `git push` to main auto-deploys. Branches get preview URLs — that's the PR workflow
   in production form.
+
+## Lesson 9 — Pull requests
+
+| Command | What it does |
+|---|---|
+| `git push -u origin feature/x` | Publish the feature branch to GitHub (first time; afterwards just `git push`) |
+| `gh pr create` (or GitHub web UI) | Open a pull request: "please merge my branch into main" |
+| `gh pr view --web` | Open the PR in the browser |
+| `git pull` | After merging on GitHub, bring the merge commit back down to local main |
+| `git push origin --delete feature/x` | Delete the remote branch once merged (local: `git branch -d`) |
+
+### Key ideas
+
+- **A PR is a merge with a waiting room.** Locally we ran `git merge --no-ff` ourselves;
+  a PR asks GitHub to hold that merge open so it can be *reviewed* first — diffs,
+  comments, approvals, CI checks — and then performs the same merge commit when you
+  press the button. On a team, this is where code review lives.
+- **Push the branch, not main.** The branch goes up to GitHub unmerged; main on GitHub
+  doesn't move until the PR is merged. So production (which watches main) is untouched
+  while the PR is open.
+- **Preview deployments:** Vercel builds *every* push to a PR branch and comments a
+  unique URL on the PR. You can play the real, deployed feature — backed by the real
+  database — before it ever reaches main. Test there, then merge.
+- **"Merge commit" on GitHub = our `--no-ff` convention.** GitHub offers three merge
+  buttons; "Create a merge commit" matches the history style we've used all along.
+  (Squash and rebase rewrite history — fine on some teams, not our convention.)
+- **After the merge, your local main is behind** — the merge commit only exists on
+  GitHub until you `git pull`. Remote and local are separate repos; nothing syncs by
+  itself.
