@@ -3,9 +3,11 @@ import {
   englishDataset,
   englishRecommendedTransformers,
 } from 'obscenity'
-import type { HighScore } from './highscores'
-import { MAX_NAME_LENGTH, MAX_SCORES } from './highscores'
-import { BASE_POINTS, speedBonus, streakMultiplier } from './scoring'
+// .js extensions because this module is also imported by api/leaderboard.ts,
+// which runs as native Node ESM on Vercel (extensionless imports crash there)
+import type { HighScore } from './highscores.js'
+import { MAX_NAME_LENGTH, MAX_SCORES } from './highscores.js'
+import { BASE_POINTS, speedBonus, streakMultiplier } from './scoring.js'
 
 /** Best possible single hand: instant solve at the streak cap. */
 export const MAX_HAND_SCORE = Math.round(

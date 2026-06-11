@@ -1,7 +1,9 @@
 import { Redis } from '@upstash/redis'
-import type { HighScore } from '../src/lib/highscores'
-import { MAX_SCORES } from '../src/lib/highscores'
-import { sanitizeEntry } from '../src/lib/leaderboard'
+// Explicit .js extensions: deployed functions run as native Node ESM, which
+// (unlike vercel dev's bundler) refuses extensionless relative imports.
+import type { HighScore } from '../src/lib/highscores.js'
+import { MAX_SCORES } from '../src/lib/highscores.js'
+import { sanitizeEntry } from '../src/lib/leaderboard.js'
 
 const KEY = 'lb:scores'
 /** Keep a deeper history than the visible top 10 so the tail can shift. */
