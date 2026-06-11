@@ -16,6 +16,8 @@ interface GameOverModalProps {
   score: number
   hands: number
   newAchievements: Achievement[]
+  /** Signed round token for the global submit; null if the round started offline. */
+  roundToken: string | null
   onPlayAgain: () => void
   onMenu: () => void
 }
@@ -31,6 +33,7 @@ export default function GameOverModal({
   score,
   hands,
   newAchievements,
+  roundToken,
   onPlayAgain,
   onMenu,
 }: GameOverModalProps) {
@@ -79,7 +82,7 @@ export default function GameOverModal({
       : loadHighScores()
     const localRank = local.findIndex((s) => s.name === trimmed && s.score === score)
     // The game submits its own score; the player only contributed the name.
-    const global = await submitGlobalScore({ name: trimmed, score, hands })
+    const global = await submitGlobalScore({ name: trimmed, score, hands }, roundToken)
     const globalRank = global?.findIndex((s) => s.name === trimmed && s.score === score)
     setSaved({
       local,

@@ -6,6 +6,16 @@ export const BASE_POINTS = 100
 export const MEDIUM_AT = 1000
 export const HARD_AT = 1750
 
+/**
+ * Plausibility floor for the leaderboard's hands cap. Even a savant needs a few
+ * seconds to read four cards and make three merges; 3s is generous. Used only to
+ * reject physically impossible hand counts (the real leader managed 22 hands —
+ * MAX_HANDS_PER_ROUND of 60 leaves huge headroom while flatly rejecting the
+ * 75/87-hand forgeries). Tunable knob.
+ */
+export const MIN_SECONDS_PER_HAND = 3
+export const MAX_HANDS_PER_ROUND = Math.ceil(ROUND_SECONDS / MIN_SECONDS_PER_HAND)
+
 /** Hands get harder as your score climbs, not with the clock. */
 export function difficultyForScore(score: number): Difficulty {
   if (score < MEDIUM_AT) return 'easy'

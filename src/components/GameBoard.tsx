@@ -12,6 +12,7 @@ import Card from './Card'
 import OperatorBar from './OperatorBar'
 import Timer from './Timer'
 import type { RoundSummary } from '../lib/stats'
+import { startRound } from '../lib/leaderboard'
 import ScoreHud from './ScoreHud'
 import Celebration from './effects/Celebration'
 import Background from './effects/Background'
@@ -37,7 +38,7 @@ interface SolveFlash {
 }
 
 interface GameBoardProps {
-  onGameOver: (summary: RoundSummary) => void
+  onGameOver: (summary: RoundSummary, token: string | null) => void
 }
 
 export default function GameBoard({ onGameOver }: GameBoardProps) {
@@ -75,6 +76,20 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
   const bestStreakRef = useRef(0)
   const fastestRef = useRef(0)
   const skipsRef = useRef(0)
+  // Signed round token, requested when the round opens and submitted with the
+  // score at the end. null = API was unreachable (round still plays, just can't
+  // post to the global board).
+  const tokenRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    void startRound().then((t) => {
+      if (alive) tokenRef.current = t
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
 
   useEffect(() => {
     const start = Date.now()
@@ -107,13 +122,16 @@ export default function GameBoard({ onGameOver }: GameBoardProps) {
 
   useEffect(() => {
     if (finished)
-      onGameOver({
-        score,
-        hands,
-        bestStreak: bestStreakRef.current,
-        fastestSolve: fastestRef.current,
-        skips: skipsRef.current,
-      })
+      onGameOver(
+        {
+          score,
+          hands,
+          bestStreak: bestStreakRef.current,
+          fastestSolve: fastestRef.current,
+          skips: skipsRef.current,
+        },
+        tokenRef.current,
+      )
   }, [finished, score, hands, onGameOver])
 
   useEffect(() => {

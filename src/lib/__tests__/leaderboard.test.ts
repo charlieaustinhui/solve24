@@ -45,6 +45,13 @@ describe('sanitizeEntry', () => {
     expect(sanitizeEntry({ name: 'AAA', score: MAX_HAND_SCORE, hands: 1 }).ok).toBe(true)
   })
 
+  it('rejects physically impossible hand counts (the HALDENNNNN forgery)', () => {
+    // 87 and 75 hands in a 180s round are beyond the cap; 22 (the real leader) is fine
+    expect(sanitizeEntry({ name: 'HALDENNNNN', score: 31822, hands: 87 }).ok).toBe(false)
+    expect(sanitizeEntry({ name: 'HALDENNNNN', score: 30496, hands: 75 }).ok).toBe(false)
+    expect(sanitizeEntry({ name: 'CARLOS VAZ', score: 6668, hands: 22 }).ok).toBe(true)
+  })
+
   it('rejects inappropriate names with a distinct reason', () => {
     expect(sanitizeEntry({ ...valid, name: 'FUCK' })).toEqual({
       ok: false,
